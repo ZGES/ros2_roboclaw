@@ -13,13 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='ubuntu',
-    maintainer_email='ubuntu@todo.todo',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    maintainer='ZGES',
+    maintainer_email='piotrpassternak@gmail.com',
+    description='ROS2 drivers for roboclaw v.3.1.3',
+    license='MIT License',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'listener = ros2_roboclaw.roboclaw_node:main',
         ],
     },
 )

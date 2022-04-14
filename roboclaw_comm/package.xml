@@ -4,8 +4,8 @@
   <name>roboclaw_comm</name>
   <version>0.0.0</version>
   <description>Interface for client-roboclaw communication</description>
-  <maintainer email="piotrpassternak@gmail.com">ubuntu</maintainer>
-  <license>MIT</license>
+  <maintainer email="piotrpassternak@gmail.com">ZGES</maintainer>
+  <license>MIT License</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

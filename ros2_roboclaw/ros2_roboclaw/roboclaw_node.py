@@ -20,7 +20,8 @@ class Roboclaw_Node(Node):
 
     def __init__(self):
         super().__init__('roboclaw_node')
-        self.MAX_SPEED = 1200
+        self.MAX_SPEED = 1.2
+        self.BASE_WIDTH = 0.218
         self.FRONT_RC_ADDRESS = 129
         self.REAR_RC_ADDRESS = 128
         self.SERIAL_PORT = "/dev/serial1"
@@ -51,23 +52,24 @@ class Roboclaw_Node(Node):
         else:
             self.rc_front.drive_backwards_m1(speeds[0])
         if speeds[1] >= 0:
-            self.rc_front.drive_forward_m2(speeds[0])
+            self.rc_front.drive_forward_m2(speeds[1])
         else:
-            self.rc_front.drive_backwards_m2(speeds[0])
+            self.rc_front.drive_backwards_m2(speeds[1])
         if speeds[2] >= 0:
-            self.rc_rear.drive_forward_m1(speeds[0])
+            self.rc_rear.drive_forward_m1(speeds[2])
         else:
-            self.rc_rear.drive_backwards_m1(speeds[0])
+            self.rc_rear.drive_backwards_m1(speeds[2])
         if speeds[3] >= 0:
-            self.rc_rear.drive_forward_m2(speeds[0])
+            self.rc_rear.drive_forward_m2(speeds[3])
         else:
-            self.rc_rear.drive_backwards_m2(speeds[0])
+            self.rc_rear.drive_backwards_m2(speeds[3])
 
-    def nav_callback(self, msg):
-        if msg.speed == 0:
-            test()
-        else:
-            self.get_logger().info('I heard: "%d"' % msg.speed)
+    def nav_callback(self, twist):
+        linear_x = twist.linear.x
+        if linear_x > self.MAX_SPEED:
+            linear_x = self.MAX_SPEED
+        if linear_x < -self.MAX_SPEED:
+            linear_x = -self.MAX_SPEED
 
 
 def main(args=None):
@@ -80,6 +82,7 @@ def main(args=None):
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
+    roboclaw_node.serial_port.close()
     roboclaw_node.destroy_node()
     rclpy.shutdown()
 

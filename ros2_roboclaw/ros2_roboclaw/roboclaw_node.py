@@ -22,6 +22,7 @@ class Roboclaw_Node(Node):
         super().__init__('roboclaw_node')
         self.MAX_SPEED = 1.2
         self.BASE_WIDTH = 0.218
+        self.PULSES_PER_METER = 5396.8
         self.FRONT_RC_ADDRESS = 129
         self.REAR_RC_ADDRESS = 128
         self.SERIAL_PORT = "/dev/serial1"
@@ -70,6 +71,17 @@ class Roboclaw_Node(Node):
             linear_x = self.MAX_SPEED
         if linear_x < -self.MAX_SPEED:
             linear_x = -self.MAX_SPEED
+        
+        angular_z = twist.angular.z
+
+        right_vel = linear_x + angular_z * self.BASE_WIDTH / 2.0
+        left_vel = linear_x - angular_z * self.BASE_WIDTH / 2.0
+
+        right_ticks = int(right_vel * self.PULSES_PER_METER)
+        left_ticks = int(left_vel * self.PULSES_PER_METER)
+
+        self.rc_front.drive_mixed_with_signed_speed(left_ticks, right_ticks)
+        self.rc_rear.drive_mixed_with_signed_speed(left_ticks, right_ticks)
 
 
 def main(args=None):

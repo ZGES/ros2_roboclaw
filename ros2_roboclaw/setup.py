@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'listener = ros2_roboclaw.roboclaw_node:main',
+            'steer = ros2_roboclaw.roboclaw_node:main',
         ],
     },
 )

@@ -195,7 +195,7 @@ class Roboclaw_Node(Node):
         odometry.twist.covariance = odometry.pose.covariance
 
         self.odom_pub.publish(odometry)
-        self.get_logger().info
+        self.get_logger().info('Odometry published: pose_x = {}  pose_y = {}, linear_x = {}, angular_z = {}'.format(self.odom.cur_x, self.odom.cur_y, vel_x, vel_theta))
 
     
 

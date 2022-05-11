@@ -115,7 +115,7 @@ class Roboclaw_Node(Node):
             50)
         self.nav_sub
 
-        self.odom_pub = self.create_publisher(Odometry, 'odom', 50)
+        self.odom_pub = self.create_publisher(Odometry, 'capo/odom', 50)
         timer_period = 0.02  # seconds
         self.timer = self.create_timer(timer_period, self.odom_callback)
 

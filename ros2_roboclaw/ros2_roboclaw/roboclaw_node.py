@@ -122,21 +122,21 @@ class Roboclaw_Node(Node):
     def manual_callback(self, msg):
         speeds = msg.speed
         if speeds[0] >= 0:
-            self.rc_front.drive_forward_m1(speeds[0])
+            self.rc_front.drive_forward_m2(speeds[0])
         else:
-            self.rc_front.drive_backwards_m1(speeds[0])
+            self.rc_front.drive_backwards_m2(speeds[0])
         if speeds[1] >= 0:
-            self.rc_front.drive_forward_m2(speeds[1])
+            self.rc_front.drive_forward_m1(speeds[1])
         else:
-            self.rc_front.drive_backwards_m2(speeds[1])
+            self.rc_front.drive_backwards_m1(speeds[1])
         if speeds[2] >= 0:
-            self.rc_rear.drive_forward_m1(speeds[2])
+            self.rc_rear.drive_forward_m2(speeds[2])
         else:
-            self.rc_rear.drive_backwards_m1(speeds[2])
+            self.rc_rear.drive_backwards_m2(speeds[2])
         if speeds[3] >= 0:
-            self.rc_rear.drive_forward_m2(speeds[3])
+            self.rc_rear.drive_forward_m1(speeds[3])
         else:
-            self.rc_rear.drive_backwards_m2(speeds[3])
+            self.rc_rear.drive_backwards_m1(speeds[3])
 
     def nav_callback(self, twist):
         linear_x = twist.linear.x
@@ -153,15 +153,15 @@ class Roboclaw_Node(Node):
         right_ticks = int(right_vel * self.TICKS_PER_METER)
         left_ticks = int(left_vel * self.TICKS_PER_METER)
 
-        self.rc_front.drive_mixed_with_signed_speed(left_ticks, right_ticks)
-        self.rc_rear.drive_mixed_with_signed_speed(left_ticks, right_ticks)
+        self.rc_front.drive_mixed_with_signed_speed(right_ticks, left_ticks)
+        self.rc_rear.drive_mixed_with_signed_speed(right_ticks, left_ticks)
 
     def odom_callback(self):
         
-        enc_fl, _ = self.rc_front.read_quad_encoder_register_m1()
-        enc_fr, _ = self.rc_front.read_quad_encoder_register_m2()
-        enc_rl, _ = self.rc_rear.read_quad_encoder_register_m1()
-        enc_rr, _ = self.rc_rear.read_quad_encoder_register_m2()
+        enc_fl, _ = self.rc_front.read_quad_encoder_register_m2()
+        enc_fr, _ = self.rc_front.read_quad_encoder_register_m1()
+        enc_rl, _ = self.rc_rear.read_quad_encoder_register_m2()
+        enc_rr, _ = self.rc_rear.read_quad_encoder_register_m1()
 
         vel_x, vel_theta = self.odom.update_odom(enc_fl, enc_fr, enc_rl, enc_rr)
 

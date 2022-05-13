@@ -14,13 +14,13 @@ import tf_transformations
 class Odom():
     def __init__(self, node):
         self.node = node
-        self.cur_x = 0
-        self.cur_y = 0
+        self.cur_x = 0.0
+        self.cur_y = 0.0
         self.cur_theta = 0.0
-        self.last_enc_left_front = 0
-        self.last_enc_right_front = 0
-        self.last_enc_left_rear = 0
-        self.last_enc_right_rear = 0
+        self.last_enc_left_front = 0.0
+        self.last_enc_right_front = 0.0
+        self.last_enc_left_rear = 0.0
+        self.last_enc_right_rear = 0.0
         self.last_enc_time = self.node.get_clock().now()
 
     @staticmethod
@@ -101,6 +101,9 @@ class Roboclaw_Node(Node):
         self.rc_rear = Roboclaw(self.serial_port, self.REAR_RC_ADDRESS)
         self.odom = Odom(self)
 
+        self.rc_front.reset_quad_encoder_counters()
+        self.rc_rear.reset_quad_encoder_counters()
+
         self.manual_sub = self.create_subscription(
             Speed,
             'manual',
@@ -168,6 +171,12 @@ class Roboclaw_Node(Node):
         quat = tf_transformations.quaternion_from_euler(0, 0, self.odom.cur_theta)
 
         odometry = Odometry()
+        quaternion = Quaternion()
+
+        quaternion.x = quat[0]
+        quaternion.y = quat[1]
+        quaternion.z = quat[2]
+        quaternion.w = quat[3]
 
         odometry.header.stamp = self.odom.last_enc_time.to_msg()
         odometry.header.frame_id = 'odom'
@@ -177,7 +186,7 @@ class Roboclaw_Node(Node):
         odometry.pose.pose.position.x = self.odom.cur_x
         odometry.pose.pose.position.y = self.odom.cur_y
         odometry.pose.pose.position.z = 0.0
-        odometry.pose.pose.orientation = Quaternion(*quat)
+        odometry.pose.pose.orientation = quaternion
 
         odometry.pose.covariance[0] = 1e-2
         odometry.pose.covariance[7] = 1e-2
@@ -187,10 +196,10 @@ class Roboclaw_Node(Node):
         odometry.pose.covariance[35] = 1e-2
 
         odometry.twist.twist.linear.x = vel_x
-        odometry.twist.twist.linear.y = 0
-        odometry.twist.twist.linear.z = 0
-        odometry.twist.twist.angular.x = 0
-        odometry.twist.twist.angular.y = 0
+        odometry.twist.twist.linear.y = 0.0
+        odometry.twist.twist.linear.z = 0.0
+        odometry.twist.twist.angular.x = 0.0
+        odometry.twist.twist.angular.y = 0.0
         odometry.twist.twist.angular.z = vel_theta
         odometry.twist.covariance = odometry.pose.covariance
 

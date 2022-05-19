@@ -42,18 +42,8 @@ class Odom():
         self.last_enc_left_rear = enc_rl
         self.last_enc_right_rear = enc_rr
 
-        left_diff = front_left_ticks - rear_left_ticks
-        right_diff = front_right_ticks - rear_right_ticks
-
-        if left_diff <= 0:
-            left_ticks = 0.6 * front_left_ticks + 0.4 * rear_left_ticks
-        else:
-            left_ticks = 0.4 * front_left_ticks + 0.6 * rear_left_ticks
-
-        if right_diff <= 0:
-            right_ticks = 0.6 * front_right_ticks + 0.4 * rear_right_ticks
-        else:
-            right_ticks = 0.4 * front_right_ticks + 0.6 * rear_right_ticks
+        left_ticks = (front_left_ticks + rear_left_ticks)/2
+        right_ticks = (front_right_ticks + rear_right_ticks)/2
 
         dist_left = left_ticks / self.node.TICKS_PER_METER
         dist_right = right_ticks / self.node.TICKS_PER_METER

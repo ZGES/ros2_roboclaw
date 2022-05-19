@@ -58,7 +58,7 @@ class Odom():
             self.cur_x += dist * math.cos(self.cur_theta)
             self.cur_y += dist * math.sin(self.cur_theta)
         else:
-            d_theta = (dist_right - dist_left) / self.width
+            d_theta = (dist_right - dist_left) / self.node.BASE_WIDTH
             r = dist / d_theta
             self.cur_x += r * (math.sin(d_theta + self.cur_theta) - math.sin(self.cur_theta))
             self.cur_y -= r * (math.cos(d_theta + self.cur_theta) - math.cos(self.cur_theta))
@@ -79,10 +79,10 @@ class Roboclaw_Node(Node):
     def __init__(self):
         super().__init__('roboclaw_node')
         self.MAX_SPEED = 1.2
-        self.BASE_WIDTH = 0.218
+        self.BASE_WIDTH = 0.224
         self.TICKS_PER_METER = 5396.8
-        self.FRONT_RC_ADDRESS = 129
-        self.REAR_RC_ADDRESS = 128
+        self.FRONT_RC_ADDRESS = 128
+        self.REAR_RC_ADDRESS = 129
         self.SERIAL_PORT = "/dev/serial1"
         self.BAUD_RATE = 38400
         self.TIMEOUT = 0.7
@@ -117,19 +117,19 @@ class Roboclaw_Node(Node):
         if speeds[0] >= 0:
             self.rc_front.drive_forward_m2(speeds[0])
         else:
-            self.rc_front.drive_backwards_m2(speeds[0])
+            self.rc_front.drive_backwards_m2(abs(speeds[0]))
         if speeds[1] >= 0:
             self.rc_front.drive_forward_m1(speeds[1])
         else:
-            self.rc_front.drive_backwards_m1(speeds[1])
+            self.rc_front.drive_backwards_m1(abs(speeds[1]))
         if speeds[2] >= 0:
             self.rc_rear.drive_forward_m2(speeds[2])
         else:
-            self.rc_rear.drive_backwards_m2(speeds[2])
+            self.rc_rear.drive_backwards_m2(abs(speeds[2]))
         if speeds[3] >= 0:
             self.rc_rear.drive_forward_m1(speeds[3])
         else:
-            self.rc_rear.drive_backwards_m1(speeds[3])
+            self.rc_rear.drive_backwards_m1(abs(speeds[3]))
 
     def nav_callback(self, twist):
         linear_x = twist.linear.x
@@ -155,6 +155,8 @@ class Roboclaw_Node(Node):
         enc_fr, _ = self.rc_front.read_quad_encoder_register_m1()
         enc_rl, _ = self.rc_rear.read_quad_encoder_register_m2()
         enc_rr, _ = self.rc_rear.read_quad_encoder_register_m1()
+
+        self.get_logger().info('Encoders reads: front left = {}  front right = {}, rear left = {}, rear right = {}'.format(enc_fl, enc_fr, enc_rl, enc_rr))
 
         vel_x, vel_theta = self.odom.update_odom(enc_fl, enc_fr, enc_rl, enc_rr)
 

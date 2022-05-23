@@ -81,8 +81,8 @@ class Roboclaw_Node(Node):
         self.MAX_SPEED = 1.2
         self.BASE_WIDTH = 0.224
         self.TICKS_PER_METER = 5396.8
-        self.FRONT_RC_ADDRESS = 128
-        self.REAR_RC_ADDRESS = 129
+        self.FRONT_RC_ADDRESS = 129
+        self.REAR_RC_ADDRESS = 128
         self.SERIAL_PORT = "/dev/serial1"
         self.BAUD_RATE = 38400
         self.TIMEOUT = 0.7

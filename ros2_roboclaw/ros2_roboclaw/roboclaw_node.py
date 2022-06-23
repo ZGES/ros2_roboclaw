@@ -1,3 +1,4 @@
+from re import A
 import rclpy
 from rclpy.node import Node
 
@@ -78,7 +79,8 @@ class Roboclaw_Node(Node):
 
     def __init__(self):
         super().__init__('roboclaw_node')
-        self.MAX_SPEED = 1.2
+        self.MIN_TICKS = 1400
+        self.MAX_TICKS = 4500
         self.BASE_WIDTH = 0.224
         self.TICKS_PER_METER = 5396.8
         self.FRONT_RC_ADDRESS = 129
@@ -109,7 +111,7 @@ class Roboclaw_Node(Node):
         self.nav_sub
 
         self.odom_pub = self.create_publisher(Odometry, 'capo/odom', 50)
-        timer_period = 0.02  # seconds
+        timer_period = 0.2  # seconds
         self.timer = self.create_timer(timer_period, self.odom_callback)
 
     def manual_callback(self, msg):
@@ -132,22 +134,47 @@ class Roboclaw_Node(Node):
             self.rc_rear.drive_backwards_m1(abs(speeds[3]))
 
     def nav_callback(self, twist):
+        self.get_logger().info('Received message: lin x = {}, ang z = {}'.format(twist.linear.x, twist.angular.z))
+        
         linear_x = twist.linear.x
-        if linear_x > self.MAX_SPEED:
-            linear_x = self.MAX_SPEED
-        if linear_x < -self.MAX_SPEED:
-            linear_x = -self.MAX_SPEED
         
         angular_z = twist.angular.z
 
-        right_vel = linear_x + angular_z * self.BASE_WIDTH / 2.0
-        left_vel = linear_x - angular_z * self.BASE_WIDTH / 2.0
+        angle_component = angular_z * self.BASE_WIDTH / 2.0
+        right_vel = linear_x + angle_component
+        left_vel = linear_x - angle_component
 
-        right_ticks = int(right_vel * self.TICKS_PER_METER)
-        left_ticks = int(left_vel * self.TICKS_PER_METER)
 
-        self.rc_front.drive_mixed_with_signed_speed(right_ticks, left_ticks)
-        self.rc_rear.drive_mixed_with_signed_speed(right_ticks, left_ticks)
+        if right_vel > 0.00001:
+            if left_vel > 0.00001 and angle_component > 0.00001:
+                right_ticks = max(self.MIN_TICKS + abs(angle_component * self.TICKS_PER_METER), min(int(right_vel * self.TICKS_PER_METER), self.MAX_TICKS))
+            else:
+                right_ticks = max(self.MIN_TICKS, min(int(right_vel * self.TICKS_PER_METER), self.MAX_TICKS))
+        elif right_vel < -0.00001:
+            if left_vel < -0.00001 and angle_component < -0.00001:
+                right_ticks = min(-self.MIN_TICKS - abs(angle_component * self.TICKS_PER_METER), max(int(right_vel * self.TICKS_PER_METER), -self.MAX_TICKS))
+            else:
+                right_ticks = min(-self.MIN_TICKS, max(int(right_vel * self.TICKS_PER_METER), -self.MAX_TICKS))
+        else:
+                right_ticks = 0
+        
+        if left_vel > 0.00001:
+            if right_vel > 0.00001 and angle_component < -0.00001:
+                left_ticks = max(self.MIN_TICKS + abs(angle_component * self.TICKS_PER_METER), min(int(left_vel * self.TICKS_PER_METER), self.MAX_TICKS))
+            else:
+                left_ticks = max(self.MIN_TICKS, min(int(left_vel * self.TICKS_PER_METER), self.MAX_TICKS))
+        elif left_vel < -0.00001:
+            if right_vel < -0.00001 and angle_component > 0.00001:
+                left_ticks = min(-self.MIN_TICKS - abs(angle_component * self.TICKS_PER_METER), max(int(left_vel * self.TICKS_PER_METER), -self.MAX_TICKS))
+            else:
+                left_ticks = min(-self.MIN_TICKS, max(int(left_vel * self.TICKS_PER_METER), -self.MAX_TICKS))
+        else:
+                left_ticks = 0
+
+
+        self.get_logger().info('RIGHT_TICKS: {},  LEFT_TICKS: {}'.format(right_ticks, left_ticks))
+        self.rc_front.drive_mixed_with_signed_speed(int(right_ticks), int(left_ticks))
+        self.rc_rear.drive_mixed_with_signed_speed(int(right_ticks), int(left_ticks))
 
     def odom_callback(self):
         

@@ -79,7 +79,7 @@ class Roboclaw_Node(Node):
 
     def __init__(self):
         super().__init__('roboclaw_node')
-        self.MIN_TICKS = 1400
+        self.MIN_TICKS = 1700
         self.MAX_TICKS = 4500
         self.BASE_WIDTH = 0.224
         self.TICKS_PER_METER = 5396.8
@@ -143,34 +143,20 @@ class Roboclaw_Node(Node):
         angle_component = angular_z * self.BASE_WIDTH / 2.0
         right_vel = linear_x + angle_component
         left_vel = linear_x - angle_component
-
-
-        if right_vel > 0.00001:
-            if left_vel > 0.00001 and angle_component > 0.00001:
-                right_ticks = max(self.MIN_TICKS + abs(angle_component * self.TICKS_PER_METER), min(int(right_vel * self.TICKS_PER_METER), self.MAX_TICKS))
-            else:
-                right_ticks = max(self.MIN_TICKS, min(int(right_vel * self.TICKS_PER_METER), self.MAX_TICKS))
-        elif right_vel < -0.00001:
-            if left_vel < -0.00001 and angle_component < -0.00001:
-                right_ticks = min(-self.MIN_TICKS - abs(angle_component * self.TICKS_PER_METER), max(int(right_vel * self.TICKS_PER_METER), -self.MAX_TICKS))
-            else:
-                right_ticks = min(-self.MIN_TICKS, max(int(right_vel * self.TICKS_PER_METER), -self.MAX_TICKS))
-        else:
-                right_ticks = 0
         
-        if left_vel > 0.00001:
-            if right_vel > 0.00001 and angle_component < -0.00001:
-                left_ticks = max(self.MIN_TICKS + abs(angle_component * self.TICKS_PER_METER), min(int(left_vel * self.TICKS_PER_METER), self.MAX_TICKS))
-            else:
-                left_ticks = max(self.MIN_TICKS, min(int(left_vel * self.TICKS_PER_METER), self.MAX_TICKS))
-        elif left_vel < -0.00001:
-            if right_vel < -0.00001 and angle_component > 0.00001:
-                left_ticks = min(-self.MIN_TICKS - abs(angle_component * self.TICKS_PER_METER), max(int(left_vel * self.TICKS_PER_METER), -self.MAX_TICKS))
-            else:
-                left_ticks = min(-self.MIN_TICKS, max(int(left_vel * self.TICKS_PER_METER), -self.MAX_TICKS))
+        if right_vel > 0.00001:
+            right_ticks = min(self.MIN_TICKS + abs(right_vel * self.TICKS_PER_METER), self.MAX_TICKS)
+        elif right_vel < -0.00001:
+            right_ticks = max(-self.MIN_TICKS - abs(right_vel * self.TICKS_PER_METER), -self.MAX_TICKS)
         else:
-                left_ticks = 0
+            right_ticks = 0
 
+        if left_vel > 0.00001:
+            left_ticks = min(self.MIN_TICKS + abs(left_vel * self.TICKS_PER_METER), self.MAX_TICKS)
+        elif left_vel < -0.00001:
+            left_ticks = max(-self.MIN_TICKS - abs(left_vel * self.TICKS_PER_METER), -self.MAX_TICKS)
+        else:
+            left_ticks = 0
 
         self.get_logger().info('RIGHT_TICKS: {},  LEFT_TICKS: {}'.format(right_ticks, left_ticks))
         self.rc_front.drive_mixed_with_signed_speed(int(right_ticks), int(left_ticks))

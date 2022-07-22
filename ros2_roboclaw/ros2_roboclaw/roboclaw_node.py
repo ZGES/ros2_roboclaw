@@ -156,7 +156,7 @@ class Roboclaw_Node(Node):
         
         angular_z = twist.angular.z
 
-        angle_component = angular_z * self.BASE_WIDTH / 2.0
+        angle_component = 1.2 * angular_z * self.BASE_WIDTH / 2.0
         right_vel = linear_x + angle_component
         left_vel = linear_x - angle_component
         

@@ -1,4 +1,3 @@
-from re import A
 import rclpy
 from rclpy.node import Node
 
@@ -33,6 +32,22 @@ class Odom():
         return angle 
 
     def update_odom(self, enc_fl, enc_fr, enc_rl, enc_rr):
+        if enc_fl == -1 or enc_fr == -1 or enc_rl == -1 or enc_rr == -1:
+            self.node.get_logger().error('ENCODERS ERROR! Attemting to reset communication...')
+            self.node.serial_port.close()
+            self.node.serial_port = SerialPort(serial.Serial(port=self.node.SERIAL_PORT, baudrate=self.node.BAUD_RATE, timeout=self.node.TIMEOUT))
+            self.node.rc_front = Roboclaw(self.node.serial_port, self.node.FRONT_RC_ADDRESS)
+            self.node.rc_rear = Roboclaw(self.node.serial_port, self.node.REAR_RC_ADDRESS)
+            self.node.rc_front.reset_quad_encoder_counters()
+            self.node.rc_rear.reset_quad_encoder_counters()
+
+            enc_fl = self.last_enc_left_front
+            enc_fr = self.last_enc_right_front
+            enc_rl = self.last_enc_left_rear
+            enc_rr = self.last_enc_right_rear
+            self.node.get_logger().info('Communication restarted')
+
+
         front_left_ticks = enc_fl - self.last_enc_left_front
         front_right_ticks = enc_fr - self.last_enc_right_front
         rear_left_ticks = enc_rl - self.last_enc_left_rear
@@ -79,7 +94,7 @@ class Roboclaw_Node(Node):
 
     def __init__(self):
         super().__init__('roboclaw_node')
-        self.MIN_TICKS = 1700
+        self.MIN_TICKS = 1000
         self.MAX_TICKS = 4500
         self.BASE_WIDTH = 0.224
         self.TICKS_PER_METER = 5396.8
@@ -111,11 +126,12 @@ class Roboclaw_Node(Node):
         self.nav_sub
 
         self.odom_pub = self.create_publisher(Odometry, 'capo/odom', 50)
-        timer_period = 0.2  # seconds
+        timer_period = 1.0  # seconds
         self.timer = self.create_timer(timer_period, self.odom_callback)
 
     def manual_callback(self, msg):
         speeds = msg.speed
+        self.get_logger().info('Received message: front left: {}, front right: {}, rear left: {}, rear right: {}'.format(speeds[0],speeds[1],speeds[2], speeds[3]))
         if speeds[0] >= 0:
             self.rc_front.drive_forward_m2(speeds[0])
         else:
@@ -134,7 +150,7 @@ class Roboclaw_Node(Node):
             self.rc_rear.drive_backwards_m1(abs(speeds[3]))
 
     def nav_callback(self, twist):
-        self.get_logger().info('Received message: lin x = {}, ang z = {}'.format(twist.linear.x, twist.angular.z))
+        self.get_logger().info('Received message: linear x = {}, angular z = {}'.format(twist.linear.x, twist.angular.z))
         
         linear_x = twist.linear.x
         
@@ -157,8 +173,8 @@ class Roboclaw_Node(Node):
             left_ticks = max(-self.MIN_TICKS - abs(left_vel * self.TICKS_PER_METER), -self.MAX_TICKS)
         else:
             left_ticks = 0
-
-        self.get_logger().info('RIGHT_TICKS: {},  LEFT_TICKS: {}'.format(right_ticks, left_ticks))
+        
+        self.get_logger().info('Set wheels ticks: LEFT - {}, RIGHT - {}'.format(left_ticks, right_ticks))
         self.rc_front.drive_mixed_with_signed_speed(int(right_ticks), int(left_ticks))
         self.rc_rear.drive_mixed_with_signed_speed(int(right_ticks), int(left_ticks))
 

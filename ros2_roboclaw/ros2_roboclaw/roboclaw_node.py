@@ -41,18 +41,21 @@ class Odom():
             self.node.rc_front.reset_quad_encoder_counters()
             self.node.rc_rear.reset_quad_encoder_counters()
 
-            enc_fl = self.last_enc_left_front
-            enc_fr = self.last_enc_right_front
-            enc_rl = self.last_enc_left_rear
-            enc_rr = self.last_enc_right_rear
+            self.last_enc_left_front = 0
+            self.last_enc_right_front = 0
+            self.last_enc_left_rear = 0
+            self.last_enc_right_rear = 0
+            self.last_enc_time = self.node.get_clock().now()
             self.node.get_logger().info('Communication restarted')
+
+            return 0, 0
 
 
         front_left_ticks = enc_fl - self.last_enc_left_front
         front_right_ticks = enc_fr - self.last_enc_right_front
         rear_left_ticks = enc_rl - self.last_enc_left_rear
         rear_right_ticks = enc_rr - self.last_enc_right_rear
-
+        
         self.last_enc_left_front = enc_fl
         self.last_enc_right_front = enc_fr
         self.last_enc_left_rear = enc_rl
@@ -156,7 +159,7 @@ class Roboclaw_Node(Node):
         
         angular_z = twist.angular.z
 
-        angle_component = 1.2 * angular_z * self.BASE_WIDTH / 2.0
+        angle_component = 1.6 * angular_z * self.BASE_WIDTH / 2.0
         right_vel = linear_x + angle_component
         left_vel = linear_x - angle_component
         

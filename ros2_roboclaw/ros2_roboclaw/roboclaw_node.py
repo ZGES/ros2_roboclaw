@@ -48,7 +48,7 @@ class Odom():
             self.last_enc_time = self.node.get_clock().now()
             self.node.get_logger().info('Communication restarted')
 
-            return 0, 0
+            return 0.0, 0.0
 
 
         front_left_ticks = enc_fl - self.last_enc_left_front
@@ -243,6 +243,8 @@ def main(args=None):
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
+    roboclaw_node.rc_front.drive_mixed_with_signed_speed(0, 0)
+    roboclaw_node.rc_rear.drive_mixed_with_signed_speed(0, 0)
     roboclaw_node.serial_port.close()
     roboclaw_node.destroy_node()
     rclpy.shutdown()

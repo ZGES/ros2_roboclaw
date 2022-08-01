@@ -40,6 +40,8 @@ class Odom():
             self.node.rc_rear = Roboclaw(self.node.serial_port, self.node.REAR_RC_ADDRESS)
             self.node.rc_front.reset_quad_encoder_counters()
             self.node.rc_rear.reset_quad_encoder_counters()
+            self.node.rc_front.drive_mixed_with_signed_speed(0, 0)
+            self.node.rc_rear.drive_mixed_with_signed_speed(0, 0)
 
             self.last_enc_left_front = 0
             self.last_enc_right_front = 0
@@ -129,7 +131,7 @@ class Roboclaw_Node(Node):
         self.nav_sub
 
         self.odom_pub = self.create_publisher(Odometry, 'capo/odom', 50)
-        timer_period = 1.0  # seconds
+        timer_period = 0.5  # seconds
         self.timer = self.create_timer(timer_period, self.odom_callback)
 
     def manual_callback(self, msg):
@@ -243,8 +245,6 @@ def main(args=None):
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
-    roboclaw_node.rc_front.drive_mixed_with_signed_speed(0, 0)
-    roboclaw_node.rc_rear.drive_mixed_with_signed_speed(0, 0)
     roboclaw_node.serial_port.close()
     roboclaw_node.destroy_node()
     rclpy.shutdown()
